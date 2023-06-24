@@ -26,21 +26,42 @@ func HandleUploadFile(ctx *fiber.Ctx) error {
 			return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, "invalid file type", nil, fiber.StatusBadRequest)
 		}
 		fileName := replaceFileName(file.Filename)
-		if err := ctx.SaveFile(file, fmt.Sprintf("./%s/%s", imageDir, fileName)); err != nil {
+		if err := ctx.SaveFile(file, fmt.Sprintf("./%s/store/%s", imageDir, fileName)); err != nil {
 			log.Println("Failed to save file.")
 			return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
 		}
-
-		ctx.Locals("photoUrl", fileName)
+		ctx.Locals("photoUrl", fmt.Sprintf("store/%s", fileName))
 	} else {
 		ctx.Locals("photoUrl", "")
 	}
 	return ctx.Next()
 }
 
+func HandleMultipleFile(ctx *fiber.Ctx) error {
+	fmt.Println("triggered")
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
+	}
+	var photoUrls []string
+	for _, photo := range form.File["photos"] {
+		if !checkFileType(photo) {
+			return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, "invalid file type", nil, fiber.StatusBadRequest)
+		}
+		fileName := replaceFileName(photo.Filename)
+		if err := ctx.SaveFile(photo, fmt.Sprintf("./%s/products/%s", imageDir, fileName)); err != nil {
+			log.Println("Failed to save file.")
+			return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
+		}
+		photoUrls = append(photoUrls, fmt.Sprintf("products/%s", fileName))
+	}
+	ctx.Locals("photoUrls", photoUrls)
+	return ctx.Next()
+}
+
 func replaceFileName(filename string) string {
 	newName := strconv.FormatInt(time.Now().Unix(), 10)
-	return strings.Replace(filename, strings.Split(filename, ".")[0], newName, 1)
+	return newName + "-" + filename
 }
 
 func RemoveUnusedPhoto(filename string) error {

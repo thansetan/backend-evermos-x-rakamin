@@ -5,6 +5,7 @@ import (
 	"final_project/internal/pkg/address"
 	"final_project/internal/pkg/auth"
 	"final_project/internal/pkg/category"
+	"final_project/internal/pkg/product"
 	"final_project/internal/pkg/store"
 	"final_project/internal/pkg/user"
 	"final_project/internal/utils"
@@ -29,5 +30,8 @@ func HTTPRouteInit(r *fiber.App, containerConf *container.Container) {
 
 	categoryAPI := api.Group("/category")
 	category.CategoryRoute(categoryAPI, containerConf)
+
+	productAPI := api.Group("/product")
+	product.ProductRoute(productAPI, containerConf)
 
 }
