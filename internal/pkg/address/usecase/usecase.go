@@ -17,7 +17,7 @@ type AddressUseCase interface {
 	GetUserAddresses(ctx context.Context, filter addressdto.AddressFilter) (res []*addressdto.AddressResponse, err *helper.ErrorStruct)
 	GetUserAddressByID(ctx context.Context, userID, addressID string) (res *addressdto.AddressResponse, err *helper.ErrorStruct)
 	CreateAddress(ctx context.Context, data addressdto.AddressCreate) (res uint, err *helper.ErrorStruct)
-	UpdateAddressByID(ctx context.Context, userID, addressID string, data addressdto.AddressUpdate) *helper.ErrorStruct
+	UpdateAddressByID(ctx context.Context, addressID string, data addressdto.AddressUpdate) *helper.ErrorStruct
 	DeleteAddressByID(ctx context.Context, userID, addressID string) *helper.ErrorStruct
 }
 
@@ -101,7 +101,7 @@ func (uc *AddressUseCaseImpl) CreateAddress(ctx context.Context, data addressdto
 	return res, nil
 }
 
-func (uc *AddressUseCaseImpl) UpdateAddressByID(ctx context.Context, userID, addressID string, data addressdto.AddressUpdate) *helper.ErrorStruct {
+func (uc *AddressUseCaseImpl) UpdateAddressByID(ctx context.Context, addressID string, data addressdto.AddressUpdate) *helper.ErrorStruct {
 	if validateErr := helper.Validate.Struct(&data); validateErr != nil {
 		log.Println(validateErr)
 		return &helper.ErrorStruct{
@@ -109,10 +109,11 @@ func (uc *AddressUseCaseImpl) UpdateAddressByID(ctx context.Context, userID, add
 			Code: fiber.StatusBadRequest,
 		}
 	}
-	addressErr := uc.addressrepository.UpdateAddressByID(ctx, userID, addressID, dao.Address{
+	addressErr := uc.addressrepository.UpdateAddressByID(ctx, addressID, dao.Address{
 		Recipient:     data.Recipient,
 		PhoneNumber:   data.PhoneNumber,
 		AddressDetail: data.AddressDetail,
+		UserID:        data.UserID,
 	})
 	if addressErr != nil {
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at UpdateAddressByID : %s", addressErr.Error()))

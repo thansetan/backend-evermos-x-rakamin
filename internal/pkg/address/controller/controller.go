@@ -36,7 +36,7 @@ func (cn *AddressControllerImpl) GetMyAddresses(ctx *fiber.Ctx) error {
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, "UNAUTHORZED", nil, fiber.StatusUnauthorized)
 	}
 	filter := new(addressdto.AddressFilter)
-	if err := ctx.QueryParser(&filter); err != nil {
+	if err := ctx.QueryParser(filter); err != nil {
 		log.Println(err)
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
 	}
@@ -99,15 +99,20 @@ func (cn *AddressControllerImpl) UpdateMyAddressByID(ctx *fiber.Ctx) error {
 	if addressID == "" {
 		return helper.ResponseBuilder(*ctx, false, helper.PUTDATAFAILED, fiber.ErrBadRequest.Message, nil, fiber.StatusBadRequest)
 	}
+	userIDUint, uintErr := utils.StringToUint(userID)
+	if uintErr != nil {
+		return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, uintErr.Error(), nil, fiber.StatusBadRequest)
+	}
 	data := new(addressdto.AddressUpdate)
 	if err := ctx.BodyParser(&data); err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.PUTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
 	}
-	err := cn.addressusecase.UpdateAddressByID(c, userID, addressID, *data)
+	data.UserID = userIDUint
+	err := cn.addressusecase.UpdateAddressByID(c, addressID, *data)
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.PUTDATAFAILED, err.Err.Error(), nil, err.Code)
 	}
-	return helper.ResponseBuilder(*ctx, true, helper.PUTDATASUCCESS, nil, nil, fiber.StatusOK)
+	return helper.ResponseBuilder(*ctx, true, helper.PUTDATASUCCESS, nil, nil, fiber.StatusNoContent)
 }
 
 func (cn *AddressControllerImpl) DeleteMyAddressByID(ctx *fiber.Ctx) error {
@@ -124,5 +129,5 @@ func (cn *AddressControllerImpl) DeleteMyAddressByID(ctx *fiber.Ctx) error {
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.DELETEDATAFAILED, err.Err.Error(), nil, err.Code)
 	}
-	return helper.ResponseBuilder(*ctx, true, helper.DELETEDATASUCCESS, nil, nil, fiber.StatusOK)
+	return helper.ResponseBuilder(*ctx, true, helper.DELETEDATASUCCESS, nil, nil, fiber.StatusNoContent)
 }

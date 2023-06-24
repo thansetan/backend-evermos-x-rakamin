@@ -9,6 +9,7 @@ type AddressCreate struct {
 }
 
 type AddressUpdate struct {
+	UserID        uint
 	Recipient     string `json:"nama_penerima"`
 	PhoneNumber   string `json:"no_telp"`
 	AddressDetail string `json:"detail_alamat"`

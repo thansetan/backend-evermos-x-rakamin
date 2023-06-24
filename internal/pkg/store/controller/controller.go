@@ -44,7 +44,7 @@ func (cn *StoreControllerImpl) GetStoreByID(ctx *fiber.Ctx) error {
 func (cn *StoreControllerImpl) GetAllStores(ctx *fiber.Ctx) error {
 	c := ctx.Context()
 	filter := new(storedto.StoreFilter)
-	if err := ctx.QueryParser(&filter); err != nil {
+	if err := ctx.QueryParser(filter); err != nil {
 		log.Println(err)
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
 	}
