@@ -17,6 +17,7 @@ func AuthMiddleware(ctx *fiber.Ctx) error {
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err, nil, fiber.StatusUnauthorized)
 	}
+	ctx.Locals("storeID", claims["storeID"])
 	ctx.Locals("userID", claims["userID"])
 	ctx.Locals("isAdmin", claims["isAdmin"])
 	return ctx.Next()

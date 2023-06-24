@@ -133,6 +133,7 @@ func (uc *AuthUseCaseImpl) Login(ctx context.Context, data authdto.Login) (res a
 	}
 	claims := jwt.MapClaims{
 		"userID":  user.ID,
+		"storeID": user.Store.ID,
 		"isAdmin": user.IsAdmin,
 		"exp":     time.Now().Add(time.Hour * 48).Unix(),
 	}

@@ -23,8 +23,7 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 }
 
 func (repo *AuthRepositoryImpl) Login(ctx context.Context, data dao.UserLogin) (res *dao.User, err error) {
-	db := repo.db
-	if err := db.WithContext(ctx).Where("phone_number = ?", data.PhoneNumber).First(&res).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Where("phone_number = ?", data.PhoneNumber).Preload("Store").First(&res).Error; err != nil {
 		return res, gorm.ErrRecordNotFound
 	}
 	return res, nil
