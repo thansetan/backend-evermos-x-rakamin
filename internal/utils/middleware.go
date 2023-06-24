@@ -21,3 +21,11 @@ func AuthMiddleware(ctx *fiber.Ctx) error {
 	ctx.Locals("isAdmin", claims["isAdmin"])
 	return ctx.Next()
 }
+
+func CheckIsAdmin(ctx *fiber.Ctx) error {
+	isAdmin := ctx.Locals("isAdmin").(bool)
+	if !isAdmin {
+		return helper.ResponseBuilder(*ctx, false, "Failed to MODIFY data", fiber.ErrUnauthorized.Message, nil, fiber.StatusUnauthorized)
+	}
+	return ctx.Next()
+}

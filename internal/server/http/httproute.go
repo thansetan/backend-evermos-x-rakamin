@@ -4,6 +4,7 @@ import (
 	"final_project/internal/infrastructure/container"
 	"final_project/internal/pkg/address"
 	"final_project/internal/pkg/auth"
+	"final_project/internal/pkg/category"
 	"final_project/internal/pkg/store"
 	"final_project/internal/pkg/user"
 	"final_project/internal/utils"
@@ -25,5 +26,8 @@ func HTTPRouteInit(r *fiber.App, containerConf *container.Container) {
 
 	addressAPI := userAPI.Group("/alamat", utils.AuthMiddleware)
 	address.AddressRoute(addressAPI, containerConf)
+
+	categoryAPI := api.Group("/category")
+	category.CategoryRoute(categoryAPI, containerConf)
 
 }
