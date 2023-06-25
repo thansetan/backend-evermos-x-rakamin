@@ -2,6 +2,7 @@ package user
 
 import (
 	"final_project/internal/infrastructure/container"
+	provincecityrepository "final_project/internal/pkg/provincecity/repository"
 	usercontroller "final_project/internal/pkg/user/controller"
 	userrepository "final_project/internal/pkg/user/repository"
 	userusecase "final_project/internal/pkg/user/usecase"
@@ -11,8 +12,9 @@ import (
 )
 
 func UserRoute(r fiber.Router, conf *container.Container) {
-	repository := userrepository.NewUserRepository(conf.Mysqldb)
-	usecase := userusecase.NewUserUseCase(repository)
+	userRepo := userrepository.NewUserRepository(conf.Mysqldb)
+	provinceCityRepo := provincecityrepository.NewProvinceCityRepository()
+	usecase := userusecase.NewUserUseCase(userRepo, provinceCityRepo)
 	controller := usercontroller.NewUserController(usecase)
 
 	r.Get("", utils.AuthMiddleware, controller.GetMyProfile)

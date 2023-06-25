@@ -7,7 +7,6 @@ import (
 	"final_project/internal/helper"
 	authdto "final_project/internal/pkg/auth/dto"
 	authrepository "final_project/internal/pkg/auth/repository"
-	provincecitydto "final_project/internal/pkg/provincecity/dto"
 	provincecityrepository "final_project/internal/pkg/provincecity/repository"
 	storerepository "final_project/internal/pkg/store/repository"
 	"final_project/internal/utils"
@@ -164,14 +163,10 @@ func (uc *AuthUseCaseImpl) Login(ctx context.Context, data authdto.Login) (res a
 	}
 	city, _ := uc.provincecityrepository.GetCityByID(user.CityID)
 	province, _ := uc.provincecityrepository.GetProvinceByID(user.ProvinceID)
-	res.City = provincecitydto.City{
-		ID:         city.ID,
-		ProvinceID: city.ProvinceID,
-		Name:       city.Name,
-	}
-	res.Province = provincecitydto.Province{
-		ID:   province.ID,
-		Name: province.Name,
-	}
+	res.City.ID = city.ID
+	res.City.Name = city.Name
+	res.City.ProvinceID = city.ProvinceID
+	res.Province.ID = province.ID
+	res.Province.Name = province.Name
 	return res, nil
 }

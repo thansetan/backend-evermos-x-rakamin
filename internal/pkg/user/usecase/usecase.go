@@ -4,6 +4,7 @@ import (
 	"context"
 	"final_project/internal/dao"
 	"final_project/internal/helper"
+	provincecityrepository "final_project/internal/pkg/provincecity/repository"
 	userdto "final_project/internal/pkg/user/dto"
 	userrepository "final_project/internal/pkg/user/repository"
 	"final_project/internal/utils"
@@ -23,12 +24,14 @@ type UserUseCase interface {
 }
 
 type UserUseCaseImpl struct {
-	userrepository userrepository.UserRepository
+	userrepository         userrepository.UserRepository
+	provincecityrepository provincecityrepository.ProvinceCityRepository
 }
 
-func NewUserUseCase(userrepository userrepository.UserRepository) UserUseCase {
+func NewUserUseCase(userrepository userrepository.UserRepository, provincecityrepository provincecityrepository.ProvinceCityRepository) UserUseCase {
 	return &UserUseCaseImpl{
-		userrepository: userrepository,
+		userrepository:         userrepository,
+		provincecityrepository: provincecityrepository,
 	}
 }
 
@@ -51,6 +54,13 @@ func (uc *UserUseCaseImpl) GetUserByID(ctx context.Context, userID string) (res 
 		Occupation:  userRes.Occupation,
 		Email:       userRes.Email,
 	}
+	city, _ := uc.provincecityrepository.GetCityByID(userRes.CityID)
+	province, _ := uc.provincecityrepository.GetProvinceByID(userRes.ProvinceID)
+	res.City.ID = city.ID
+	res.City.Name = city.Name
+	res.City.ProvinceID = city.ProvinceID
+	res.Province.ID = province.ID
+	res.Province.Name = province.Name
 	return res, nil
 }
 

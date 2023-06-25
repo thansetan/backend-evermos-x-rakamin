@@ -34,7 +34,7 @@ func (repo *UserRepositoryImpl) UpdateUserByID(ctx context.Context, userID strin
 	if err := repo.db.WithContext(ctx).First(&userData, userID).Error; err != nil {
 		return gorm.ErrRecordNotFound
 	}
-	if err := repo.db.Model(userData).Updates(data).Where("id = ?", userID).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Model(&userData).Updates(data).Where("id = ?", userID).Error; err != nil {
 		return err
 	}
 	return nil
