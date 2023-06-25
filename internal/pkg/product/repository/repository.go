@@ -52,14 +52,14 @@ func (repo *ProductRepositoryImpl) GetProducts(ctx context.Context, params dao.P
 	if params.StoreID > 0 {
 		db = db.WithContext(ctx).Where("store_id = ?", params.StoreID)
 	}
-	if err := db.WithContext(ctx).Limit(params.Limit).Offset(params.Page).Find(&res).Error; err != nil {
+	if err := db.WithContext(ctx).Preload("Store").Preload("Category").Preload("ProductPhotos").Limit(params.Limit).Offset(params.Page).Find(&res).Error; err != nil {
 		return res, err
 	}
 	return res, nil
 }
 
 func (repo *ProductRepositoryImpl) GetProductByID(ctx context.Context, productID string) (res *dao.Product, err error) {
-	if err := repo.db.WithContext(ctx).Preload("ProductPhotos").First(&res, productID).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Preload("Store").Preload("Category").Preload("ProductPhotos").First(&res, productID).Error; err != nil {
 		return res, gorm.ErrRecordNotFound
 	}
 	return res, nil

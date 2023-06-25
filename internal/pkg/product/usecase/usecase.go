@@ -4,8 +4,10 @@ import (
 	"context"
 	"final_project/internal/dao"
 	"final_project/internal/helper"
+	categorydto "final_project/internal/pkg/category/dto"
 	productdto "final_project/internal/pkg/product/dto"
 	productrepository "final_project/internal/pkg/product/repository"
+	storedto "final_project/internal/pkg/store/dto"
 	"final_project/internal/utils"
 	"fmt"
 
@@ -129,8 +131,15 @@ func (uc *ProductUseCaseImpl) GetProducts(ctx context.Context, params productdto
 			ConsumerPrice: product.ConsumerPrice,
 			Stock:         product.Stock,
 			Description:   product.Description,
-			StoreID:       product.StoreID,
-			CategoryID:    product.CategoryID,
+			Store: storedto.StoreResponse{
+				ID:        product.Store.ID,
+				StoreName: product.Store.StoreName,
+				PhotoUrl:  product.Store.PhotoUrl,
+			},
+			Category: categorydto.CategoryResponse{
+				ID:           product.Category.ID,
+				CategoryName: product.Category.CategoryName,
+			},
 		})
 		for _, photo := range productRes[i].ProductPhotos {
 			res[i].Photos = append(res[i].Photos, &productdto.ProductPhotoResponse{
@@ -160,8 +169,15 @@ func (uc *ProductUseCaseImpl) GetProductByID(ctx context.Context, productID stri
 		ConsumerPrice: productRes.ConsumerPrice,
 		Stock:         productRes.Stock,
 		Description:   productRes.Description,
-		StoreID:       productRes.StoreID,
-		CategoryID:    productRes.CategoryID,
+		Store: storedto.StoreResponse{
+			ID:        productRes.Store.ID,
+			StoreName: productRes.Store.StoreName,
+			PhotoUrl:  productRes.Store.PhotoUrl,
+		},
+		Category: categorydto.CategoryResponse{
+			ID:           productRes.Category.ID,
+			CategoryName: productRes.Category.CategoryName,
+		},
 	}
 	for _, photo := range productRes.ProductPhotos {
 		res.Photos = append(res.Photos, &productdto.ProductPhotoResponse{

@@ -14,6 +14,9 @@ type Product struct {
 	Description   string          `json:"deskripsi" gorm:"text"`
 	ProductPhotos []*ProductPhoto `gorm:"foreignKey:ProductID"`
 	ProductLog    *ProductLog     `gorm:"foreignKey:ProductID"`
+
+	Store    Store
+	Category Category
 }
 
 type ProductLog struct {

@@ -1,5 +1,10 @@
 package productdto
 
+import (
+	categorydto "final_project/internal/pkg/category/dto"
+	storedto "final_project/internal/pkg/store/dto"
+)
+
 type ProductCreateOrUpdate struct {
 	StoreID       uint
 	ProductName   string `form:"nama_produk"`
@@ -11,15 +16,15 @@ type ProductCreateOrUpdate struct {
 }
 
 type ProductResponse struct {
-	ProductID     uint                    `json:"id"`
-	ProductName   string                  `json:"nama_produk"`
-	ResellerPrice uint                    `json:"harga_reseller"`
-	ConsumerPrice uint                    `json:"harga_konsumen"`
-	Stock         int                     `json:"stok"`
-	Description   string                  `json:"deskripsi"`
-	StoreID       uint                    `json:"id_toko"`
-	CategoryID    uint                    `json:"id_kategori"`
-	Photos        []*ProductPhotoResponse `json:"photos"`
+	ProductID     uint                         `json:"id"`
+	ProductName   string                       `json:"nama_produk"`
+	ResellerPrice uint                         `json:"harga_reseller"`
+	ConsumerPrice uint                         `json:"harga_konsumen"`
+	Stock         int                          `json:"stok"`
+	Description   string                       `json:"deskripsi"`
+	Store         storedto.StoreResponse       `json:"toko"`
+	Category      categorydto.CategoryResponse `json:"category"`
+	Photos        []*ProductPhotoResponse      `json:"photos"`
 }
 
 type ProductPhotoResponse struct {
