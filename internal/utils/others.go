@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func StringToUint(str string) (uint, error) {
@@ -31,8 +29,4 @@ func StringToInt(str string) (int, error) {
 		return 0, err
 	}
 	return res, nil
-}
-
-func GenerateInvoiceNumber() string {
-	return fmt.Sprintf("INV-%d", time.Now().Unix())
 }

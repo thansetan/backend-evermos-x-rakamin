@@ -81,6 +81,7 @@ func (uc *AuthUseCaseImpl) Register(ctx context.Context, data authdto.Register) 
 	tx := uc.db.Begin()
 	userID, repoErr := uc.authrepository.Register(ctx, registrationData, tx)
 	if helper.CheckDuplicateData(repoErr) {
+		tx.Rollback()
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Erorr at Register : %s", repoErr.Error()))
 		return res, &helper.ErrorStruct{
 			Err:  errors.New("email/phone number already in use"),
@@ -88,6 +89,7 @@ func (uc *AuthUseCaseImpl) Register(ctx context.Context, data authdto.Register) 
 		}
 	}
 	if repoErr != nil {
+		tx.Rollback()
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Erorr at Register : %s", repoErr.Error()))
 		return res, &helper.ErrorStruct{
 			Err:  repoErr,

@@ -1,6 +1,10 @@
 package dao
 
-import "gorm.io/gorm"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 type Product struct {
 	gorm.Model
@@ -44,4 +48,11 @@ type ProductFilter struct {
 	ProductName                   string
 	Limit, Page, MaxPrice         int
 	CategoryID, StoreID, MinPrice uint
+}
+
+func (p *Product) AfterSave(tx *gorm.DB) error {
+	if p.Stock < 0 {
+		return errors.New("invalid product stock")
+	}
+	return nil
 }

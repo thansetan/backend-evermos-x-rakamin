@@ -2,8 +2,10 @@ package transactionusecase
 
 import (
 	"context"
+	"errors"
 	"final_project/internal/dao"
 	"final_project/internal/helper"
+	addressrepository "final_project/internal/pkg/address/repository"
 	productdto "final_project/internal/pkg/product/dto"
 	productrepository "final_project/internal/pkg/product/repository"
 	transactiondto "final_project/internal/pkg/transaction/dto"
@@ -11,6 +13,7 @@ import (
 	"final_project/internal/utils"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -166,6 +169,14 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 			Code: fiber.StatusBadRequest,
 		}
 	}
+	// Check if address is valid (user can't use another user's address)
+	if !isValidAddress(ctx, uc.db, data.UserID, fmt.Sprintf("%d", data.AddressID)) {
+		return res, &helper.ErrorStruct{
+			Err:  errors.New("invalid address used"),
+			Code: fiber.StatusBadRequest,
+		}
+	}
+
 	tx := uc.db.Begin()
 	productIDSlice := make([]uint, len(data.TransactionDetails))
 	productQtySlice := make([]uint, len(data.TransactionDetails))
@@ -186,7 +197,16 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 
 	// and then we map those data to productLog object
 	var productLogData []dao.ProductLog
-	for _, product := range productRecords {
+	for i, product := range productRecords {
+
+		// check for product record after transaction
+		if product.Stock-int(productQtySlice[i]) < 0 {
+			return res, &helper.ErrorStruct{
+				Err:  errors.New("insufficient product stock"),
+				Code: fiber.StatusBadRequest,
+			}
+		}
+
 		productLogData = append(productLogData, dao.ProductLog{
 			StoreID:       product.StoreID,
 			CategoryID:    product.CategoryID,
@@ -200,8 +220,9 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 	}
 
 	// and then we insert the productLog to the database
-	productLogRes, productLogErr := uc.productrepository.CreateProductLog(ctx, productLogData)
+	productLogRes, productLogErr := uc.productrepository.CreateProductLog(ctx, productLogData, tx)
 	if productLogErr != nil {
+		tx.Rollback()
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at CreateTransaction: %s", productErr.Error()))
 		return res, &helper.ErrorStruct{
 			Err:  productErr,
@@ -236,11 +257,12 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 		UserID:             userIDUint,
 		AddressID:          data.AddressID,
 		PaymentMethod:      data.PaymentMethod,
-		InvoiceNumber:      utils.GenerateInvoiceNumber(),
+		InvoiceNumber:      generateInvoiceNumber(),
 		TotalPrice:         totalTrxPrice,
 		TransactionDetails: trxDetailsData,
-	})
+	}, tx)
 	if transactionErr != nil {
+		tx.Rollback()
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at CreateTransaction: %s", transactionErr.Error()))
 		return res, &helper.ErrorStruct{
 			Err:  transactionErr,
@@ -248,21 +270,31 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 		}
 	}
 
+	tx.Commit()
 	// finally we update the product data after the transaction
-
 	for i, product := range data.TransactionDetails {
 		productErr := uc.productrepository.UpdateProductByID(ctx, fmt.Sprintf("%d", product.ProductID), dao.Product{
 			Stock:   productRecords[i].Stock - int(product.Quantity),
 			StoreID: productRecords[i].StoreID,
 		})
 		if productErr != nil {
-			helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at CreateTransaction: %s", transactionErr.Error()))
+			helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at CreateTransaction: %s", productErr.Error()))
 			return res, &helper.ErrorStruct{
-				Err:  transactionErr,
+				Err:  productErr,
 				Code: fiber.StatusBadRequest,
 			}
 		}
 	}
-	tx.Commit()
 	return transactionRes, nil
+}
+
+func isValidAddress(ctx context.Context, db *gorm.DB, userID, addressID string) bool {
+	if _, err := addressrepository.NewAddressRepository(db).GetAddressByID(ctx, userID, addressID); err != nil {
+		return false
+	}
+	return true
+}
+
+func generateInvoiceNumber() string {
+	return fmt.Sprintf("INV-%d", time.Now().Unix())
 }

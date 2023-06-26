@@ -3,7 +3,6 @@ package transactionrepository
 import (
 	"context"
 	"final_project/internal/dao"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -11,7 +10,7 @@ import (
 type TransactionRepository interface {
 	GetTransactionsByUserID(ctx context.Context, userID string) (res []*dao.Transaction, err error)
 	GetTransactionByUserIDAndTransactionID(ctx context.Context, userID, transactionID string) (res *dao.Transaction, err error)
-	CreateTransaction(ctx context.Context, data dao.Transaction) (transactionID uint, err error)
+	CreateTransaction(ctx context.Context, data dao.Transaction, tx *gorm.DB) (transactionID uint, err error)
 }
 
 type TransactionRepositoryImpl struct {
@@ -38,14 +37,14 @@ func (repo *TransactionRepositoryImpl) GetTransactionByUserIDAndTransactionID(ct
 	if err := repo.db.WithContext(ctx).Where("user_id = ?", userID).Preload("Address").Preload("TransactionDetails").
 		Preload("TransactionDetails.Store").Preload("TransactionDetails.ProductLog").
 		Preload("TransactionDetails.ProductLog.Category").Preload("TransactionDetails.ProductLog.Product.ProductPhotos").
-		Find(&res, transactionID).Error; err != nil {
+		First(&res, transactionID).Error; err != nil {
 		return res, gorm.ErrRecordNotFound
 	}
-	fmt.Println(res.Address)
 	return res, nil
 }
-func (repo *TransactionRepositoryImpl) CreateTransaction(ctx context.Context, data dao.Transaction) (transactionID uint, err error) {
-	if err := repo.db.WithContext(ctx).Create(&data).Error; err != nil {
+
+func (repo *TransactionRepositoryImpl) CreateTransaction(ctx context.Context, data dao.Transaction, tx *gorm.DB) (transactionID uint, err error) {
+	if err := tx.WithContext(ctx).Create(&data).Error; err != nil {
 		return transactionID, err
 	}
 	return data.ID, nil
