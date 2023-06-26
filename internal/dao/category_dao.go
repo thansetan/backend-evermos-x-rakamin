@@ -8,8 +8,13 @@ import (
 
 type Category struct {
 	gorm.Model
-	CategoryName string `json:"nama_kategori"`
+	CategoryName string `json:"nama_kategori" gorm:"not null"`
 	Product      *Product
+}
+
+type CategoryFilter struct {
+	Name          string
+	Limit, Offset int
 }
 
 func (c *Category) BeforeDelete(tx *gorm.DB) error {

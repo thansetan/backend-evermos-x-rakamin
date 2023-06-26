@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type Store struct {
 	gorm.Model
-	UserID             uint                 `json:"id_user"`
-	StoreName          string               `json:"nama_toko"`
+	UserID             uint                 `json:"id_user" gorm:"not null"`
+	StoreName          string               `json:"nama_toko" gorm:"not null"`
 	PhotoUrl           string               `json:"url_foto"`
 	Products           []*Product           `gorm:"foreignKey:StoreID"`
 	ProductLogs        []*ProductLog        `gorm:"foreignKey:StoreID"`
@@ -14,4 +14,5 @@ type Store struct {
 
 type StoreFilter struct {
 	Limit, Offset int
+	Name          string
 }

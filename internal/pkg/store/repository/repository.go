@@ -4,6 +4,7 @@ import (
 	"context"
 	"final_project/internal/dao"
 	"final_project/internal/utils"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -41,7 +42,8 @@ func (repo *StoreRepositoryImpl) GetStoreByID(ctx context.Context, storeID strin
 }
 
 func (repo *StoreRepositoryImpl) GetAllStores(ctx context.Context, params dao.StoreFilter) (res []*dao.Store, err error) {
-	if err := repo.db.WithContext(ctx).Limit(params.Limit).Offset(params.Offset).Find(&res).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Where("store_name LIKE ?", fmt.Sprintf("%%%s%%", params.Name)).
+		Limit(params.Limit).Offset(params.Offset).Find(&res).Error; err != nil {
 		return res, err
 	}
 	return res, nil

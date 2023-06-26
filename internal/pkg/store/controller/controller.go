@@ -51,6 +51,7 @@ func (cn *StoreControllerImpl) GetAllStores(ctx *fiber.Ctx) error {
 	res, err := cn.storeusecase.GetAllStores(c, storedto.StoreFilter{
 		Limit: filter.Limit,
 		Page:  filter.Page,
+		Name:  filter.Name,
 	})
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Err.Error(), nil, err.Code)

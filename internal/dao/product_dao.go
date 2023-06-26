@@ -8,14 +8,14 @@ import (
 
 type Product struct {
 	gorm.Model
-	StoreID       uint            `json:"id_toko"`
-	CategoryID    uint            `json:"id_kategori"`
-	ProductName   string          `json:"nama_produk"`
-	Slug          string          `json:"slug"`
+	StoreID       uint            `json:"id_toko" gorm:"not null"`
+	CategoryID    uint            `json:"id_kategori" gorm:"not null"`
+	ProductName   string          `json:"nama_produk" gorm:"not null"`
+	Slug          string          `json:"slug" gorm:"not null"`
 	ResellerPrice uint            `json:"harga_reseller"`
-	ConsumerPrice uint            `json:"harga_konsumen"`
-	Stock         int             `json:"stok"`
-	Description   string          `json:"deskripsi" gorm:"text"`
+	ConsumerPrice uint            `json:"harga_konsumen" gorm:"not null"`
+	Stock         int             `json:"stok" gorm:"not null"`
+	Description   string          `json:"deskripsi" gorm:"type:text"`
 	ProductPhotos []*ProductPhoto `gorm:"foreignKey:ProductID"`
 	ProductLogs   []*ProductLog   `gorm:"foreignKey:ProductID"`
 	Store         Store
@@ -24,14 +24,15 @@ type Product struct {
 
 type ProductLog struct {
 	gorm.Model
-	StoreID           uint               `json:"id_toko"`
-	CategoryID        uint               `json:"id_kategori"`
-	ProductID         uint               `json:"id_produk"`
-	ProductName       string             `json:"nama_produk"`
-	Slug              string             `json:"slug"`
-	ResellerPrice     uint               `json:"harga_reseller"`
-	ConsumerPrice     uint               `json:"harga_konsumen"`
-	Description       string             `json:"deskripsi" gorm:"text"`
+	StoreID           uint               `json:"id_toko" gorm:"not null"`
+	CategoryID        uint               `json:"id_kategori" gorm:"not null"`
+	ProductID         uint               `json:"id_produk" gorm:"not null"`
+	ProductName       string             `json:"nama_produk" gorm:"not null"`
+	Slug              string             `json:"slug" gorm:"not null"`
+	ResellerPrice     uint               `json:"harga_reseller" gorm:"not null"`
+	ConsumerPrice     uint               `json:"harga_konsumen" gorm:"not null"`
+	Description       string             `json:"deskripsi" gorm:"type:text"`
+	Stock             uint               `json:"stok" gorm:"not null"`
 	TransactionDetail *TransactionDetail `gorm:"foreignKey:ProductLogID"`
 
 	Category Category
@@ -45,9 +46,13 @@ type ProductPhoto struct {
 }
 
 type ProductFilter struct {
-	ProductName                   string
-	Limit, Page, MaxPrice         int
-	CategoryID, StoreID, MinPrice uint
+	ProductName                             string
+	Limit, Page                             int
+	CategoryID, StoreID, MinPrice, MaxPrice uint
+}
+
+type ProductLogRes struct {
+	ID, ProductID uint
 }
 
 func (p *Product) AfterSave(tx *gorm.DB) error {

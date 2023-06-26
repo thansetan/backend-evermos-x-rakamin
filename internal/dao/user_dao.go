@@ -12,14 +12,14 @@ import (
 
 type User struct {
 	gorm.Model
-	Name        string         `json:"nama"`
-	Password    string         `json:"kata_sandi"`
-	PhoneNumber string         `json:"no_telp" gorm:"unique"`
-	DateOfBirth time.Time      `json:"tanggal_lahir"`
-	Sex         string         `json:"jenis_kelamin"`
-	About       string         `json:"tentang" gorm:"text"`
+	Name        string         `json:"nama" gorm:"not null"`
+	Password    string         `json:"kata_sandi" gorm:"not null"`
+	PhoneNumber string         `json:"no_telp" gorm:"unique;not null"`
+	DateOfBirth time.Time      `json:"tanggal_lahir" gorm:"not null"`
+	Sex         string         `json:"jenis_kelamin" gorm:"not null"`
+	About       string         `json:"tentang" gorm:"type:text"`
 	Occupation  string         `json:"pekerjaan"`
-	Email       string         `json:"email" gorm:"unique"`
+	Email       string         `json:"email" gorm:"unique;not null"`
 	ProvinceID  string         `json:"id_provinsi"`
 	CityID      string         `json:"id_kota"`
 	IsAdmin     bool           `gorm:"default: false"`

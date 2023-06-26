@@ -18,10 +18,10 @@ import (
 var currentFilePath = "internal/pkg/product/usecase/usecase.go"
 
 type ProductUseCase interface {
-	CreateProduct(ctx context.Context, data productdto.ProductCreateOrUpdate, photos []string) (productID uint, err *helper.ErrorStruct)
+	CreateProduct(ctx context.Context, data productdto.ProductCreate, photos []string) (productID uint, err *helper.ErrorStruct)
 	GetProducts(ctx context.Context, params productdto.ProductFilter) (res []*productdto.ProductResponse, err *helper.ErrorStruct)
 	GetProductByID(ctx context.Context, productID string) (res *productdto.ProductResponse, err *helper.ErrorStruct)
-	UpdateProductByID(ctx context.Context, productID string, data productdto.ProductCreateOrUpdate, photos []string) *helper.ErrorStruct
+	UpdateProductByID(ctx context.Context, productID string, data productdto.ProductUpdate, photos []string) *helper.ErrorStruct
 	DeleteProductByID(ctx context.Context, storeID, productID string) *helper.ErrorStruct
 }
 
@@ -35,7 +35,7 @@ func NewProductUseCase(productrepository productrepository.ProductRepository) Pr
 	}
 }
 
-func (uc *ProductUseCaseImpl) CreateProduct(ctx context.Context, data productdto.ProductCreateOrUpdate, photos []string) (productID uint, err *helper.ErrorStruct) {
+func (uc *ProductUseCaseImpl) CreateProduct(ctx context.Context, data productdto.ProductCreate, photos []string) (productID uint, err *helper.ErrorStruct) {
 	if validateErr := helper.Validate.Struct(&data); validateErr != nil {
 		return productID, &helper.ErrorStruct{
 			Err:  validateErr,
@@ -57,27 +57,13 @@ func (uc *ProductUseCaseImpl) CreateProduct(ctx context.Context, data productdto
 			Code: fiber.StatusBadRequest,
 		}
 	}
-	resellerPrice, parseErr := utils.StringToUint(data.ResellerPrice)
-	if parseErr != nil {
-		return productID, &helper.ErrorStruct{
-			Err:  parseErr,
-			Code: fiber.StatusBadRequest,
-		}
-	}
-	consumerPrice, parseErr := utils.StringToUint(data.ConsumerPrice)
-	if parseErr != nil {
-		return productID, &helper.ErrorStruct{
-			Err:  parseErr,
-			Code: fiber.StatusBadRequest,
-		}
-	}
 	var productData = &dao.Product{
 		StoreID:       data.StoreID,
 		ProductName:   data.ProductName,
 		CategoryID:    categoryID,
 		Slug:          productSlug,
-		ResellerPrice: resellerPrice,
-		ConsumerPrice: consumerPrice,
+		ResellerPrice: uint(data.ResellerPrice),
+		ConsumerPrice: uint(data.ConsumerPrice),
 		Stock:         productStock,
 		Description:   data.Description,
 	}
@@ -98,6 +84,12 @@ func (uc *ProductUseCaseImpl) CreateProduct(ctx context.Context, data productdto
 }
 
 func (uc *ProductUseCaseImpl) GetProducts(ctx context.Context, params productdto.ProductFilter) (res []*productdto.ProductResponse, err *helper.ErrorStruct) {
+	if validateErr := helper.Validate.Struct(&params); validateErr != nil {
+		return res, &helper.ErrorStruct{
+			Err:  validateErr,
+			Code: fiber.StatusBadRequest,
+		}
+	}
 	if params.Limit < 1 {
 		params.Limit = 10
 	}
@@ -113,8 +105,8 @@ func (uc *ProductUseCaseImpl) GetProducts(ctx context.Context, params productdto
 		Page:        params.Page,
 		CategoryID:  params.CategoryID,
 		StoreID:     params.StoreID,
-		MaxPrice:    params.MaxPrice,
-		MinPrice:    params.MinPrice,
+		MaxPrice:    uint(params.MaxPrice),
+		MinPrice:    uint(params.MinPrice),
 	})
 	if productErr != nil {
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at GetProducts: %s", productErr.Error()))
@@ -189,7 +181,7 @@ func (uc *ProductUseCaseImpl) GetProductByID(ctx context.Context, productID stri
 	return res, err
 }
 
-func (uc *ProductUseCaseImpl) UpdateProductByID(ctx context.Context, productID string, data productdto.ProductCreateOrUpdate, photos []string) *helper.ErrorStruct {
+func (uc *ProductUseCaseImpl) UpdateProductByID(ctx context.Context, productID string, data productdto.ProductUpdate, photos []string) *helper.ErrorStruct {
 	if validateErr := helper.Validate.Struct(&data); validateErr != nil {
 		return &helper.ErrorStruct{
 			Err:  validateErr,
@@ -210,26 +202,12 @@ func (uc *ProductUseCaseImpl) UpdateProductByID(ctx context.Context, productID s
 			Code: fiber.StatusBadRequest,
 		}
 	}
-	resellerPrice, parseErr := utils.StringToUint(data.ResellerPrice)
-	if parseErr != nil {
-		return &helper.ErrorStruct{
-			Err:  parseErr,
-			Code: fiber.StatusBadRequest,
-		}
-	}
-	consumerPrice, parseErr := utils.StringToUint(data.ConsumerPrice)
-	if parseErr != nil {
-		return &helper.ErrorStruct{
-			Err:  parseErr,
-			Code: fiber.StatusBadRequest,
-		}
-	}
 	var productData = &dao.Product{
 		StoreID:       data.StoreID,
 		ProductName:   data.ProductName,
 		CategoryID:    categoryID,
-		ResellerPrice: resellerPrice,
-		ConsumerPrice: consumerPrice,
+		ResellerPrice: uint(data.ResellerPrice),
+		ConsumerPrice: uint(data.ConsumerPrice),
 		Stock:         productStock,
 		Description:   data.Description,
 	}

@@ -62,6 +62,7 @@ func (uc *StoreUseCaseImpl) GetAllStores(ctx context.Context, params storedto.St
 	storeRes, storeErr := uc.storerepository.GetAllStores(ctx, dao.StoreFilter{
 		Limit:  params.Limit,
 		Offset: params.Page,
+		Name:   params.Name,
 	})
 	if storeErr != nil {
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at GetAllStores: %s", storeErr.Error()))

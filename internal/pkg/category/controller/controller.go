@@ -28,8 +28,15 @@ func NewCategoryController(categoryusecase categoryusecase.CategoryUseCase) Cate
 
 func (cn *CategoryControllerImpl) GetCategories(ctx *fiber.Ctx) error {
 	c := ctx.Context()
-
-	res, err := cn.categoryusecase.GetCategories(c)
+	filter := new(categorydto.CategoryFilter)
+	if err := ctx.QueryParser(filter); err != nil {
+		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
+	}
+	res, err := cn.categoryusecase.GetCategories(c, categorydto.CategoryFilter{
+		Name:   filter.Name,
+		Limit:  filter.Limit,
+		Offset: filter.Offset,
+	})
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Err.Error(), nil, err.Code)
 	}

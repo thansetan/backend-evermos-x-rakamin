@@ -16,7 +16,7 @@ import (
 var currentFilePath = "internal/pkg/category/usecase/usecase.go"
 
 type CategoryUseCase interface {
-	GetCategories(ctx context.Context) (res []*categorydto.CategoryResponse, err *helper.ErrorStruct)
+	GetCategories(ctx context.Context, params categorydto.CategoryFilter) (res []*categorydto.CategoryResponse, err *helper.ErrorStruct)
 	GetCategoryByID(ctx context.Context, categoryID string) (res *categorydto.CategoryResponse, err *helper.ErrorStruct)
 	CreateCategory(ctx context.Context, data categorydto.CategoryCreateOrUpdate) (res uint, err *helper.ErrorStruct)
 	UpdateCategoryByID(ctx context.Context, categoryID string, data categorydto.CategoryCreateOrUpdate) *helper.ErrorStruct
@@ -33,8 +33,21 @@ func NewCategoryUseCase(categoryrepository categoryrepository.CategoryRepository
 	}
 }
 
-func (uc *CategoryUseCaseImpl) GetCategories(ctx context.Context) (res []*categorydto.CategoryResponse, err *helper.ErrorStruct) {
-	categoryRes, categoryErr := uc.categoryrepository.GetCategories(ctx)
+func (uc *CategoryUseCaseImpl) GetCategories(ctx context.Context, params categorydto.CategoryFilter) (res []*categorydto.CategoryResponse, err *helper.ErrorStruct) {
+	if params.Limit < 1 {
+		params.Limit = 10
+	}
+
+	if params.Offset < 1 {
+		params.Offset = 0
+	} else {
+		params.Offset = (params.Offset - 1) * params.Limit
+	}
+	categoryRes, categoryErr := uc.categoryrepository.GetCategories(ctx, dao.CategoryFilter{
+		Name:   params.Name,
+		Limit:  params.Limit,
+		Offset: params.Offset,
+	})
 	if categoryErr != nil {
 		helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at GetCategories: %s", categoryErr.Error()))
 		return res, &helper.ErrorStruct{

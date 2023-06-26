@@ -17,7 +17,7 @@ type ProductRepository interface {
 	DeleteProductByID(ctx context.Context, storeID, productID string) error
 
 	GetProductDataUsingSliceOfID(ctx context.Context, productIDSlice []uint) (res []*dao.Product, err error)
-	CreateProductLog(ctx context.Context, data []dao.ProductLog, tx *gorm.DB) (productLogID []uint, err error)
+	CreateProductLog(ctx context.Context, data []dao.ProductLog, tx *gorm.DB) (productLogID []*dao.ProductLogRes, err error)
 }
 
 type ProductRepositoryImpl struct {
@@ -46,7 +46,6 @@ func (repo *ProductRepositoryImpl) GetProducts(ctx context.Context, params dao.P
 		db = db.WithContext(ctx).Where("consumer_price <= ?", params.MaxPrice)
 	}
 	if params.MinPrice > 0 {
-		fmt.Printf("minimum harga: %d", params.MinPrice)
 		db = db.WithContext(ctx).Where("consumer_price >= ?", params.MinPrice)
 	}
 	if params.CategoryID > 0 {
@@ -118,15 +117,21 @@ func (repo *ProductRepositoryImpl) GetProductDataUsingSliceOfID(ctx context.Cont
 	if err := repo.db.WithContext(ctx).Find(&res, productIDSlice).Error; err != nil {
 		return res, err
 	}
+	if len(res) != len(productIDSlice) { // if the lengths are not the same, it means that some of the products are invalid.
+		return res, gorm.ErrRecordNotFound
+	}
 	return res, nil
 }
 
-func (repo *ProductRepositoryImpl) CreateProductLog(ctx context.Context, data []dao.ProductLog, tx *gorm.DB) (productLogID []uint, err error) {
+func (repo *ProductRepositoryImpl) CreateProductLog(ctx context.Context, data []dao.ProductLog, tx *gorm.DB) (res []*dao.ProductLogRes, err error) {
 	if err := tx.WithContext(ctx).Create(&data).Error; err != nil {
-		return productLogID, err
+		return res, err
 	}
 	for _, productLog := range data {
-		productLogID = append(productLogID, productLog.ID)
+		res = append(res, &dao.ProductLogRes{
+			ID:        productLog.ID,
+			ProductID: productLog.ProductID,
+		})
 	}
-	return productLogID, nil
+	return res, nil
 }

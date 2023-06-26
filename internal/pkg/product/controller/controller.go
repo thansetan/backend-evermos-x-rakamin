@@ -39,7 +39,7 @@ func (cn *ProductControllerImpl) CreateProduct(ctx *fiber.Ctx) error {
 	if parseErr != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, parseErr.Error(), nil, fiber.StatusBadRequest)
 	}
-	data := new(productdto.ProductCreateOrUpdate)
+	data := new(productdto.ProductCreate)
 	data.StoreID = storeIDUint
 	if err := ctx.BodyParser(data); err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.POSTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)
@@ -93,7 +93,7 @@ func (cn *ProductControllerImpl) UpdateProductByID(ctx *fiber.Ctx) error {
 	if parseErr != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.PUTDATAFAILED, parseErr.Error(), nil, fiber.StatusBadRequest)
 	}
-	data := new(productdto.ProductCreateOrUpdate)
+	data := new(productdto.ProductUpdate)
 	data.StoreID = storeIDUint
 	if err := ctx.BodyParser(data); err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.PUTDATAFAILED, err.Error(), nil, fiber.StatusBadRequest)

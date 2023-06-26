@@ -178,13 +178,14 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 	}
 
 	tx := uc.db.Begin()
-	productIDSlice := make([]uint, len(data.TransactionDetails))
-	productQtySlice := make([]uint, len(data.TransactionDetails))
-	for i, product := range data.TransactionDetails {
-		productIDSlice[i] = product.ProductID
-		productQtySlice[i] = product.Quantity
+	productQtyMap := make(map[uint]uint)
+	for _, product := range data.TransactionDetails {
+		productQtyMap[product.ProductID] += product.Quantity
 	}
-
+	var productIDSlice []uint
+	for k := range productQtyMap {
+		productIDSlice = append(productIDSlice, k)
+	}
 	// First we query product data with those IDs
 	productRecords, productErr := uc.productrepository.GetProductDataUsingSliceOfID(ctx, productIDSlice)
 	if productErr != nil {
@@ -197,10 +198,10 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 
 	// and then we map those data to productLog object
 	var productLogData []dao.ProductLog
-	for i, product := range productRecords {
+	for _, product := range productRecords {
 
 		// check for product record after transaction
-		if product.Stock-int(productQtySlice[i]) < 0 {
+		if product.Stock-int(productQtyMap[product.ID]) < 0 {
 			return res, &helper.ErrorStruct{
 				Err:  errors.New("insufficient product stock"),
 				Code: fiber.StatusBadRequest,
@@ -216,6 +217,7 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 			ResellerPrice: product.ResellerPrice,
 			ConsumerPrice: product.ConsumerPrice,
 			Description:   product.Description,
+			Stock:         uint(product.Stock),
 		})
 	}
 
@@ -234,10 +236,10 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 	var trxDetailsData []*dao.TransactionDetail
 	for i, productLog := range productLogRes {
 		trxDetail := &dao.TransactionDetail{
-			ProductLogID: productLog,
+			ProductLogID: productLog.ID,
 			StoreID:      productLogData[i].StoreID,
-			Quantity:     productQtySlice[i],
-			TotalPrice:   productQtySlice[i] * productLogData[i].ConsumerPrice,
+			Quantity:     productQtyMap[productLog.ProductID],
+			TotalPrice:   productQtyMap[productLog.ProductID] * productLogData[i].ConsumerPrice,
 		}
 		trxDetailsData = append(trxDetailsData, trxDetail)
 	}
@@ -269,13 +271,12 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 			Code: fiber.StatusBadRequest,
 		}
 	}
-
 	tx.Commit()
 	// finally we update the product data after the transaction
-	for i, product := range data.TransactionDetails {
-		productErr := uc.productrepository.UpdateProductByID(ctx, fmt.Sprintf("%d", product.ProductID), dao.Product{
-			Stock:   productRecords[i].Stock - int(product.Quantity),
-			StoreID: productRecords[i].StoreID,
+	for _, product := range productRecords {
+		productErr := uc.productrepository.UpdateProductByID(ctx, fmt.Sprintf("%d", product.ID), dao.Product{
+			Stock:   product.Stock - int(productQtyMap[product.ID]),
+			StoreID: product.StoreID,
 		})
 		if productErr != nil {
 			helper.Logger(currentFilePath, helper.LoggerLevelError, fmt.Sprintf("Error at CreateTransaction: %s", productErr.Error()))
@@ -285,6 +286,7 @@ func (uc *TransactionUseCaseImpl) CreateTransaction(ctx context.Context, data tr
 			}
 		}
 	}
+
 	return transactionRes, nil
 }
 

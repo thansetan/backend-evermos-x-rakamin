@@ -1,8 +1,9 @@
 package storedto
 
 type StoreFilter struct {
-	Limit int `query:"limit"`
-	Page  int `query:"page"`
+	Limit int    `query:"limit"`
+	Page  int    `query:"page"`
+	Name  string `query:"nama"`
 }
 
 type StoreUpdate struct {
@@ -13,5 +14,5 @@ type StoreUpdate struct {
 type StoreResponse struct {
 	ID        uint   `json:"id"`
 	StoreName string `json:"nama_toko"`
-	PhotoUrl  string `json:"url_foto"`
+	PhotoUrl  string `json:"url_foto,omitempty"`
 }

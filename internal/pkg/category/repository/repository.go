@@ -3,12 +3,13 @@ package categoryrepository
 import (
 	"context"
 	"final_project/internal/dao"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 type CategoryRepository interface {
-	GetCategories(ctx context.Context) (res []*dao.Category, err error)
+	GetCategories(ctx context.Context, params dao.CategoryFilter) (res []*dao.Category, err error)
 	GetCategoryByID(ctx context.Context, categoryID string) (res *dao.Category, err error)
 	CreateCategory(ctx context.Context, data dao.Category) (categoryID uint, err error)
 	UpdateCategoryByID(ctx context.Context, categoryID string, data dao.Category) error
@@ -25,8 +26,8 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 	}
 }
 
-func (repo *CategoryRepositoryImpl) GetCategories(ctx context.Context) (res []*dao.Category, err error) {
-	if err := repo.db.WithContext(ctx).Find(&res).Error; err != nil {
+func (repo *CategoryRepositoryImpl) GetCategories(ctx context.Context, params dao.CategoryFilter) (res []*dao.Category, err error) {
+	if err := repo.db.WithContext(ctx).Where("category_name LIKE ?", fmt.Sprintf("%%%s%%", params.Name)).Limit(params.Limit).Offset(params.Offset).Find(&res).Error; err != nil {
 		return res, err
 	}
 	return res, nil
