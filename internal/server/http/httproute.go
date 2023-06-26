@@ -8,6 +8,7 @@ import (
 	"final_project/internal/pkg/product"
 	"final_project/internal/pkg/provincecity"
 	"final_project/internal/pkg/store"
+	"final_project/internal/pkg/transaction"
 	"final_project/internal/pkg/user"
 	"final_project/internal/utils"
 
@@ -38,4 +39,6 @@ func HTTPRouteInit(r *fiber.App, containerConf *container.Container) {
 	provinceCityAPI := api.Group("/provcity")
 	provincecity.ProvinceCityRoute(provinceCityAPI)
 
+	transactionAPI := api.Group("/trx", utils.AuthMiddleware)
+	transaction.TransactionRoute(transactionAPI, containerConf)
 }

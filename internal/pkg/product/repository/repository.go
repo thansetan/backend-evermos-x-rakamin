@@ -15,6 +15,9 @@ type ProductRepository interface {
 	GetProductByID(ctx context.Context, productID string) (res *dao.Product, err error)
 	UpdateProductByID(ctx context.Context, productID string, data dao.Product) error
 	DeleteProductByID(ctx context.Context, storeID, productID string) error
+
+	GetProductDataUsingSliceOfID(ctx context.Context, productIDSlice []uint) (res []*dao.Product, err error)
+	CreateProductLog(ctx context.Context, data []dao.ProductLog) (productLogID []uint, err error)
 }
 
 type ProductRepositoryImpl struct {
@@ -109,4 +112,21 @@ func (repo *ProductRepositoryImpl) DeleteProductByID(ctx context.Context, storeI
 		return err
 	}
 	return nil
+}
+
+func (repo *ProductRepositoryImpl) GetProductDataUsingSliceOfID(ctx context.Context, productIDSlice []uint) (res []*dao.Product, err error) {
+	if err := repo.db.WithContext(ctx).Find(&res, productIDSlice).Error; err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (repo *ProductRepositoryImpl) CreateProductLog(ctx context.Context, data []dao.ProductLog) (productLogID []uint, err error) {
+	if err := repo.db.WithContext(ctx).Create(&data).Error; err != nil {
+		return productLogID, err
+	}
+	for _, productLog := range data {
+		productLogID = append(productLogID, productLog.ID)
+	}
+	return productLogID, nil
 }

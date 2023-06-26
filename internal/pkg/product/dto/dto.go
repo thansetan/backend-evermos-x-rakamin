@@ -20,7 +20,7 @@ type ProductResponse struct {
 	ProductName   string                       `json:"nama_produk"`
 	ResellerPrice uint                         `json:"harga_reseller"`
 	ConsumerPrice uint                         `json:"harga_konsumen"`
-	Stock         int                          `json:"stok"`
+	Stock         int                          `json:"stok,omitempty"`
 	Description   string                       `json:"deskripsi"`
 	Store         storedto.StoreResponse       `json:"toko"`
 	Category      categorydto.CategoryResponse `json:"category"`
