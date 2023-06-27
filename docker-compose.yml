@@ -1,0 +1,40 @@
+version: '1'
+
+services:
+  db:
+    image: mysql:latest
+    container_name: evermos-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DBNAME}
+      - MYSQL_USER=${MYSQL_USERNAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+    healthcheck:
+      test: "mysqladmin ping -h'db' -P'3306' --silent"
+      interval: 1s
+      timeout: 60s
+      retries: 60
+
+  main-app:
+    build:
+      context: .
+    container_name: evermos-app
+    env_file:
+      - .env
+    environment:
+      - MYSQL_HOST=db
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  adminer:
+    # added so user can access the database and make admin account / change account level to admin.
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

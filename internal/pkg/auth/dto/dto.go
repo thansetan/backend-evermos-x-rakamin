@@ -7,7 +7,7 @@ import (
 
 type Register struct {
 	Name        string `json:"nama" validate:"required"`
-	Password    string `json:"kata_sandi" validate:"required min=8"`
+	Password    string `json:"kata_sandi" validate:"required,min=8"`
 	PhoneNumber string `json:"no_telp" validate:"required"`
 	DateOfBirth string `json:"tanggal_lahir" validate:"required"`
 	Occupation  string `json:"pekerjaan"`
