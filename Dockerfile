@@ -11,6 +11,9 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/app/main-app ./main-app
 COPY .env /.env
+RUN mkdir -p assets/public/images/products \
+    && mkdir -p assets/public/images/store
+
 EXPOSE ${HTTP_PORT}
 
 CMD "./main-app"

@@ -53,7 +53,7 @@ func (cn *CategoryControllerImpl) GetCategoryByID(ctx *fiber.Ctx) error {
 	if err != nil {
 		return helper.ResponseBuilder(*ctx, false, helper.GETDATAFAILED, err.Err.Error(), nil, err.Code)
 	}
-	return helper.ResponseBuilder(*ctx, true, helper.GETDATAFAILED, nil, res, fiber.StatusOK)
+	return helper.ResponseBuilder(*ctx, true, helper.GETDATASUCCESS, nil, res, fiber.StatusOK)
 }
 
 func (cn *CategoryControllerImpl) CreateCategory(ctx *fiber.Ctx) error {

@@ -36,7 +36,7 @@ type UserLogin struct {
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	province, _ := http.Get(fmt.Sprintf("https://www.emsifa.com/api-wilayah-indonesia/api/province/%s.json", u.ProvinceID))
 	city, _ := http.Get(fmt.Sprintf("https://www.emsifa.com/api-wilayah-indonesia/api/regency/%s.json", u.CityID))
-	if city.StatusCode == 404 || province.StatusCode == 404 {
+	if (city.StatusCode == 404 || province.StatusCode == 404) || (u.ProvinceID != u.CityID[:2]) {
 		return errors.New("invalid city/province ID")
 	}
 	return nil
@@ -45,7 +45,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 func (u *User) AfterUpdate(tx *gorm.DB) error {
 	city, _ := http.Get(fmt.Sprintf("https://www.emsifa.com/api-wilayah-indonesia/api/regency/%s.json", u.CityID))
 	province, _ := http.Get(fmt.Sprintf("https://www.emsifa.com/api-wilayah-indonesia/api/province/%s.json", u.ProvinceID))
-	if city.StatusCode == 404 || province.StatusCode == 404 {
+	if (city.StatusCode == 404 || province.StatusCode == 404) || (u.ProvinceID != u.CityID[:2]) {
 		return errors.New("invalid city/province ID")
 	}
 	return nil
